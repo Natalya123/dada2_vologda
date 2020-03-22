@@ -251,3 +251,12 @@ system("sed -i '1s/^/#OTU_ID\t/' otu_table.txt")
 tax_table_ps <- as.matrix(ps@tax_table)
 tax_table_ps_df = as.data.frame(tax_table_ps)
 write.table(tax_table_ps_df, file = "tax_table_ps_df.txt", sep = '\t', quote = FALSE)
+
+
+#и немного табличек для построения деревьев
+seqs <- colnames(seqtab2)
+otab <- otu_table(seqtab2, taxa_are_rows=FALSE)
+colnames(otab) <- paste0("seq", seq(ncol(otab)))
+otab = t(otab)
+write.table(seqs, "dada_seqs.txt",quote=FALSE)
+write.table(otab, "dada_table.txt",quote=FALSE,sep="\t")
