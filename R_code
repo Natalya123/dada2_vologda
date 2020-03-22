@@ -185,21 +185,17 @@ p + geom_boxplot(data=p$data, aes(x=Variant, y=value, color=NULL), alpha=0.1)
 ####################################################################################
 #бетта-разнообразие
 ####################################################################################
-#еще одна рисовалка, для разных кспериментов стоит допстраивать индивидуально
-plot_net(seqtab2, maxdist=0.4, color="Variant", shape="Culture")
-
 #построение гистограмм и бетта-разнообразия
 PSUF <- UniFrac(ps)
 load(system.file("doc", "Unweighted_UniFrac.RData", package="phyloseq"))
 PSoPa.pcoa = ordinate(ps, method="PCoA", distance=PSUF)
 allGroupsColors<- c("grey0", "grey50", "dodgerblu", "deepskyblue","red", "darkred", "green", "green4" )
-
+plot_scree(PSoPa.pcoa, "UniFrac/PCoA")
 
 #в этой рисовалке можно выбрать, распределение по каким осям стоит отрисовать
-plot_scree(PSoPa.pcoa, "UniFrac/PCoA")
 #(p12 <- plot_ordination(ps, PSoPa.pcoa, "samples", color="Repeats") + 
 #geom_point(size=5) + geom_path() + scale_colour_hue(guide = FALSE) )
-(p13 <- plot_ordination(ps, PSoPa.pcoa, "samples", axes=c(1, 2),
+(p12 <- plot_ordination(ps, PSoPa.pcoa, "samples", axes=c(1, 2),
                         color="Variant", shape="Culture") + geom_point(size=5) )
 
 
