@@ -78,6 +78,8 @@ track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, 
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 head(track)
+#запишем данные в таблицу
+write.csv(track, "track.csv")
 
 #назначаем таксономию вариантам последовательности 
 #Пакет DADA2 предоставляет для этой цели встроенную реализацию метода наивного байесовского классификатора. 
