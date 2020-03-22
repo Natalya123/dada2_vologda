@@ -130,19 +130,15 @@ readRDS(ps, file='ps_obj.RData')
 physeq2 = filter_taxa(ps, function(x) mean(x) > 0.1, TRUE)
 physeq3 = transform_sample_counts(physeq2, function(x) x / sum(x) )
 ph_ps <- tax_glom(physeq3, taxrank = 'Phylum')
-p <- ggplot(data=ph_ps, aes(x=Sample, y=Abundance, fill=Phylum))
+data <- as.data.frame(psmelt(ph_ps))
+data$Phylum <- as.character(data$Phylum)
+data$Phylum[data$Abundance < 0.01] <- "< 1% abund."
+p <- ggplot(data, aes(x=Sample, y=Abundance, fill=Phylum))
 p + geom_bar(aes(), stat="identity", position="stack") +
   scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink", "khaki2", "firebrick", "brown1", "darkorange1", "cyan1", "royalblue4", "darksalmon", "darkblue",
                                "royalblue4", "dodgerblue3", "steelblue1", "lightskyblue", "darkseagreen", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "brown1", "darkorange1", "cyan1", "darkgrey")) +
   theme(legend.position="bottom") + facet_wrap(~Culture + Variant, scales= "free_x", nrow=1) +
   theme(axis.text.x = element_text(angle = 90))
-  
-#если не работает, то добавляем немного магии и кусок кода
-data <- psmelt(ph_ps) # create dataframe from phyloseq object
-data$Phylum <- as.character(data$Phylum) #convert to character
-data$Phylum[data$Abundance < 0.01] <- "< 1% abund."
-medians <- ddply(data, ~Phylum, function(x) c(median=median(x$Abundance)))
-remainder <- medians[medians$median <= 0.01,]$Phylum
   
 #оценка влияния различных факторов
 permanova.al <- function(ps, dist = "bray"){ # не обязательно использовать именно Брей-Кёртиса
