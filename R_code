@@ -147,6 +147,10 @@ ps1 = transform_sample_counts(ps1, function(x) 1E6 * x/sum(x))
 phylum.sum = tapply(taxa_sums(ps1), tax_table(ps1)[, "Phylum"], sum, na.rm=TRUE)
 top5phyla = names(sort(phylum.sum, TRUE))[1:5]
 ps1 = prune_taxa((tax_table(ps1)[, "Phylum"] %in% top5phyla), ps1)
+ps.ord <- ordinate(ps1, "NMDS", "bray")
+p1 = plot_ordination(ps1, ps.ord, type="taxa", color="Phylum", title="taxa")
+print(p1)
+p1 + facet_wrap(~Phylum, 3)
 
 #оценка влияния различных факторов
 permanova.al <- function(ps, dist = "bray"){ # не обязательно использовать именно Брей-Кёртиса
@@ -198,11 +202,6 @@ plot_scree(PSoPa.pcoa, "UniFrac/PCoA")
 (p13 <- plot_ordination(ps, PSoPa.pcoa, "samples", axes=c(1, 2),
                         color="Variant", shape="Culture") + geom_point(size=5) )
 
-
-ps.ord <- ordinate(ps1, "NMDS", "bray")
-p1 = plot_ordination(ps1, ps.ord, type="taxa", color="Phylum", title="taxa")
-print(p1)
-p1 + facet_wrap(~Phylum, 3)
 
 #еще немного порисуем, бетта-разнообразие в сравнении трех метрик
 beta_custom_norm_NMDS_elli <- function(ps, seed = 7888, normtype="vst", color="Variant"){
