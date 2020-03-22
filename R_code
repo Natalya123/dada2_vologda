@@ -139,7 +139,15 @@ p + geom_bar(aes(), stat="identity", position="stack") +
                                "royalblue4", "dodgerblue3", "steelblue1", "lightskyblue", "darkseagreen", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "brown1", "darkorange1", "cyan1", "darkgrey")) +
   theme(legend.position="bottom") + facet_wrap(~Culture + Variant, scales= "free_x", nrow=1) +
   theme(axis.text.x = element_text(angle = 90))
-  
+
+#распределение таксонов по основным по филам
+wh0 = genefilter_sample(ps, filterfun_sample(function(x) x > 5), A=0.5*nsamples(ps))
+ps1 = prune_taxa(wh0, ps)
+ps1 = transform_sample_counts(ps1, function(x) 1E6 * x/sum(x))
+phylum.sum = tapply(taxa_sums(ps1), tax_table(ps1)[, "Phylum"], sum, na.rm=TRUE)
+top5phyla = names(sort(phylum.sum, TRUE))[1:5]
+ps1 = prune_taxa((tax_table(ps1)[, "Phylum"] %in% top5phyla), ps1)
+
 #оценка влияния различных факторов
 permanova.al <- function(ps, dist = "bray"){ # не обязательно использовать именно Брей-Кёртиса
   require(phyloseq)
@@ -154,17 +162,13 @@ permanova_vologda <- permanova.al(ps)
 #запишем результат в файлик, по желанию можно еще путь указать, куда сохранять
 write.csv(permanova_vologda, "permanova_vologda.csv")
 
-#построение индексов альфа  (просмотреть где ошибки, не работает)
-library(otuSummary)
-otu <- as.matrix(ps@otu_table)
-otu_df = as.data.frame(otu)
-seqtab_t<-t(seqtab2)
-test1 <- alphaDiversity(otutab = otu, siteInCol = TRUE,
-                        taxhead = "taxonomy", threshold = 1, percent = FALSE, write = FALSE)
 
-#еще одна рисовалка, для разных кспериментов стоит допстраивать индивидуально
-plot_net(seqtab2, maxdist=0.4, color="Variant", shape="Culture")
-
+#######################################################################################
+#альфа-разнообразие
+#######################################################################################
+#построение индексов альфа разнообразия
+vologda_estimate_richness <- estimate_richness(ps, split = TRUE, measures = NULL)
+write.csv(vologda_estimate_richness, "vologda_estimate_richness.csv")
 
 #бокс плоты для индексов альфа распределения
 PS <- prune_taxa(taxa_sums(ps) > 0, ps)
@@ -173,6 +177,12 @@ alpha_meas = c("Observed", "Shannon")
 (p <- plot_richness(PS, "Variant", "Culture", measures=alpha_meas))
 p + geom_boxplot(data=p$data, aes(x=Variant, y=value, color=NULL), alpha=0.1)
 
+
+####################################################################################
+#бетта-разнообразие
+####################################################################################
+#еще одна рисовалка, для разных кспериментов стоит допстраивать индивидуально
+plot_net(seqtab2, maxdist=0.4, color="Variant", shape="Culture")
 
 #построение гистограмм и бетта-разнообразия
 PSUF <- UniFrac(ps)
@@ -188,13 +198,6 @@ plot_scree(PSoPa.pcoa, "UniFrac/PCoA")
 (p13 <- plot_ordination(ps, PSoPa.pcoa, "samples", axes=c(1, 2),
                         color="Variant", shape="Culture") + geom_point(size=5) )
 
-#распределение таксонов по основным по филам
-wh0 = genefilter_sample(ps, filterfun_sample(function(x) x > 5), A=0.5*nsamples(ps))
-ps1 = prune_taxa(wh0, ps)
-ps1 = transform_sample_counts(ps1, function(x) 1E6 * x/sum(x))
-phylum.sum = tapply(taxa_sums(ps1), tax_table(ps1)[, "Phylum"], sum, na.rm=TRUE)
-top5phyla = names(sort(phylum.sum, TRUE))[1:5]
-ps1 = prune_taxa((tax_table(ps1)[, "Phylum"] %in% top5phyla), ps1)
 
 ps.ord <- ordinate(ps1, "NMDS", "bray")
 p1 = plot_ordination(ps1, ps.ord, type="taxa", color="Phylum", title="taxa")
@@ -245,7 +248,6 @@ beta_custom_norm_NMDS_elli(ps)
 
 
 #переводим данные для чайма
-#Save otu-table, add #SampleID to header
 otu = as.matrix(ps@otu_table)
 otu <- t(otu)
 otu_df = as.data.frame(otu)
