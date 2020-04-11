@@ -124,7 +124,7 @@ ps
 #не забудем сохранить готовый ps-объкт
 saveRDS(ps, file='ps_obj.RData')
 #достаем сохраненный ps-объкт, когда потребуется
-readRDS(ps, file='ps_obj.RData')
+ps <- readRDS(ps, file='ps_obj.RData')
 
 #барплоты представленности различных фил в образце рисуем
 physeq2 = filter_taxa(ps, function(x) mean(x) > 0.1, TRUE)
@@ -240,6 +240,31 @@ beta_custom_norm_NMDS_elli <- function(ps, seed = 7888, normtype="vst", color="V
 } 
 
 beta_custom_norm_NMDS_elli(ps)
+
+
+############################################################
+#Определяем влияние фактора известкования
+Des.soil.w.simper <- function(ps){
+  require(DESeq2)
+  require(vegan)
+  require(tibble)
+  diagdds = phyloseq_to_deseq2(ps, ~ Lime)
+  diagdds = estimateSizeFactors(diagdds, type="poscounts")
+  diagdds = estimateDispersions(diagdds, fitType = "local")
+  diagdds = DESeq(diagdds)
+  samp <-sample_data(ps)
+  dds.counts <- diagdds@assays@.xData$data$counts
+  dds.counts.df <- as.data.frame(dds.counts)
+  aggdata <- t(aggregate.data.frame(as.data.frame(as.data.frame(t(diagdds@assays@.xData$data$mu))), by=list(samp$Repeats), median))
+  colnames(aggdata) <- aggdata[1,]
+  aggdata <- aggdata[-1,]
+  res = results(diagdds)
+  res.df <- as.data.frame(res)
+  nice <- cbind(res.df,as.data.frame(tax_table(ps)[rownames(res.df),]), as.data.frame(aggdata)[rownames(res.df),])
+  return(nice)
+}
+Des.soil.w.simper(ps) -> deseq_lime
+#write.csv(des_non_simp, "des_non_simp.csv")
 
 
 #переводим данные для чайма
